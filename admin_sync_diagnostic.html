@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MineGuard — Admin Sync Diagnostic</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0d0f1a;color:#f0f0f0;font-family:'Segoe UI',sans-serif;padding:20px}
+    h1{font-size:18px;color:#f5c518;margin-bottom:4px;letter-spacing:2px;text-transform:uppercase}
+    .sub{font-size:12px;color:#9099b0;margin-bottom:20px;line-height:1.6}
+    .card{background:#161827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:18px;margin-bottom:14px}
+    .card-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9099b0;margin-bottom:12px}
+    #log{background:#0a0b14;border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px;font-family:'Courier New',monospace;font-size:12px;line-height:1.9;min-height:200px;max-height:500px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+    .ok{color:#2ec4b6}.er{color:#e63946}.wa{color:#ff8c00}.hi{color:#f5c518}.in{color:#9099b0}
+    .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px}
+    .row:last-child{border-bottom:none}
+    .rk{color:#9099b0}.rv{font-family:monospace;font-size:12px;color:#f0f0f0;font-weight:700}
+    .rv.true{color:#2ec4b6}.rv.false{color:#e63946}
+    .sync-indicator{display:inline-flex;align-items:center;gap:8px;font-size:13px;padding:8px 16px;border-radius:20px;font-weight:600;letter-spacing:0.5px;margin-top:10px}
+    .sync-indicator.synced{background:rgba(46,196,182,0.12);color:#2ec4b6;border:1px solid rgba(46,196,182,0.25)}
+    .sync-indicator.syncing{background:rgba(245,197,24,0.12);color:#f5c518;border:1px solid rgba(245,197,24,0.25)}
+    .sync-indicator.offline{background:rgba(255,140,0,0.12);color:#ff8c00;border:1px solid rgba(255,140,0,0.25)}
+    .sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .sync-indicator.synced .sync-dot{background:#2ec4b6}
+    .sync-indicator.syncing .sync-dot{background:#f5c518;animation:pulse-dot 1s infinite}
+    .sync-indicator.offline .sync-dot{background:#ff8c00}
+    @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.3}}
+  </style>
+</head>
+<body>
+<h1>⛏️ Admin Sync Diagnostic</h1>
+<p class="sub">Mirrors exactly what admin.html does on login. Shows the raw MG state at each step.</p>
+
+<div class="card">
+  <div class="card-title">📊 Live State (auto-updates)</div>
+  <div id="stateRows"></div>
+  <div id="indicator" class="sync-indicator offline"><span class="sync-dot"></span><span id="indicatorText">Connecting...</span></div>
+</div>
+
+<div class="card">
+  <div class="card-title">📟 Live Log</div>
+  <div id="log"><span class="in">Page loaded. Waiting for firebase.js to initialise...</span></div>
+</div>
+
+<!-- Load firebase.js exactly as index.html / admin.html do -->
+<script src="firebase.js"></script>
+
+<script>
+const logEl = document.getElementById('log');
+function log(msg, c='in') {
+  const t = new Date().toLocaleTimeString();
+  logEl.innerHTML += '\n<span class="'+c+'">['+t+'] '+msg+'</span>';
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function renderState() {
+  const rows = [
+    ['window.MG exists', !!window.MG],
+    ['window.MG.online', window.MG ? window.MG.online : 'N/A'],
+    ['window.MG.db', window.MG ? window.MG.db : 'N/A'],
+    ['window.MG.ready (pending?)', window.MG ? 'see log below' : 'N/A'],
+    ['document.readyState', document.readyState],
+  ];
+  document.getElementById('stateRows').innerHTML = rows.map(([k,v]) => {
+    let cls = '';
+    if (v === true) cls = 'true';
+    if (v === false) cls = 'false';
+    return `<div class="row"><span class="rk">${k}</span><span class="rv ${cls}">${v}</span></div>`;
+  }).join('');
+}
+
+log('Script started. document.readyState = ' + document.readyState, 'hi');
+renderState();
+
+// Mirror admin.html initDashboard() exactly
+const ind = document.getElementById('indicator');
+const indText = document.getElementById('indicatorText');
+
+function setIndicator(state) {
+  ind.className = 'sync-indicator ' + state;
+  const map = { synced: '☁️ Cloud Synced', syncing: '🔄 Syncing...', offline: '📴 Offline Mode' };
+  indText.textContent = map[state] || 'Offline Mode';
+}
+
+log('window.MG at script time: ' + JSON.stringify({
+  exists: !!window.MG,
+  online: window.MG ? window.MG.online : 'undefined',
+  hasReady: window.MG ? (typeof window.MG.ready) : 'undefined'
+}), 'in');
+
+setIndicator('syncing');
+log('Set indicator to syncing. Now racing window.MG.ready vs 8s timeout...', 'in');
+
+const startTime = Date.now();
+
+Promise.race([
+  (window.MG && window.MG.ready) || Promise.resolve(false),
+  new Promise(resolve => setTimeout(() => {
+    log('⏱ 8-second timeout fired. window.MG.online at this point = ' + (window.MG ? window.MG.online : 'N/A'), 'wa');
+    resolve(window.MG ? window.MG.online : false);
+  }, 8000))
+]).then(function(isOnline) {
+  const elapsed = Date.now() - startTime;
+  log('Promise.race resolved after ' + elapsed + 'ms with isOnline = ' + isOnline, isOnline ? 'ok' : 'er');
+
+  if (isOnline) {
+    log('✅ Would call attachFirebaseListeners() — sync indicator → SYNCED', 'ok');
+    setIndicator('synced');
+  } else {
+    log('✗ isOnline=false — sync indicator → OFFLINE', 'er');
+    log('  Checking window.MG.online directly: ' + (window.MG ? window.MG.online : 'MG undefined'), 'er');
+    setIndicator('offline');
+  }
+  renderState();
+});
+
+// Also log when MG.ready actually resolves (regardless of race)
+if (window.MG && window.MG.ready) {
+  window.MG.ready.then(function(result) {
+    const elapsed = Date.now() - startTime;
+    log('🔔 window.MG.ready resolved after ' + elapsed + 'ms with value = ' + result, result ? 'ok' : 'er');
+    renderState();
+  });
+} else {
+  log('✗ window.MG.ready does not exist at script-load time!', 'er');
+}
+
+// Periodic state refresh
+setInterval(renderState, 1000);
+</script>
+</body>
+</html>

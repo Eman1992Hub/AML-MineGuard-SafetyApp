@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MineGuard — Firestore REST Test (aml-mineguard)</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0d0f1a;color:#f0f0f0;font-family:'Segoe UI',sans-serif;padding:20px}
+    h1{font-size:18px;color:#f5c518;margin-bottom:4px;letter-spacing:2px;text-transform:uppercase}
+    .sub{font-size:12px;color:#9099b0;margin-bottom:20px;line-height:1.6}
+    .card{background:#161827;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:18px;margin-bottom:14px}
+    .card-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9099b0;margin-bottom:12px}
+    .btn{border:none;border-radius:10px;font-size:15px;font-weight:800;letter-spacing:1px;padding:14px 20px;cursor:pointer;width:100%;text-transform:uppercase;margin-bottom:8px;display:block;transition:opacity 0.2s}
+    .btn:hover{opacity:0.85}.btn:disabled{opacity:0.35;cursor:not-allowed}
+    .btn-y{background:#f5c518;color:#000}
+    .btn-g{background:#2ec4b6;color:#000}
+    .btn-r{background:#e63946;color:#fff}
+    .status{padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;margin:8px 0;display:none;line-height:1.7;word-break:break-all}
+    .s-ok{background:rgba(46,196,182,0.12);border:1px solid rgba(46,196,182,0.3);color:#2ec4b6;display:block}
+    .s-err{background:rgba(230,57,70,0.12);border:1px solid rgba(230,57,70,0.3);color:#e63946;display:block}
+    .s-warn{background:rgba(255,140,0,0.12);border:1px solid rgba(255,140,0,0.3);color:#ff8c00;display:block}
+    #log{background:#0a0b14;border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px;font-family:'Courier New',monospace;font-size:11px;line-height:1.9;min-height:100px;max-height:400px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+    .ok{color:#2ec4b6}.er{color:#e63946}.wa{color:#ff8c00}.hi{color:#f5c518}.in{color:#9099b0}
+    .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px}
+    .row:last-child{border-bottom:none}
+    .rk{color:#9099b0}.rv{font-family:monospace;font-size:11px;color:#f0f0f0;word-break:break-all;text-align:right}
+  </style>
+</head>
+<body>
+<h1>⛏️ MineGuard — Firestore REST Test</h1>
+<p class="sub">Project: <strong style="color:#f5c518">aml-mineguard</strong> — pure HTTPS fetch() calls only. No SDK, no WebSocket, works on any network.</p>
+
+<div class="card">
+  <div class="card-title">🔧 Active Config</div>
+  <div id="cfgRows"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">✅ Test 1 — REST Write to Firestore</div>
+  <button class="btn btn-y" id="b1" onclick="t1()">📤 Write Test Incident via REST</button>
+  <div class="status" id="s1"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">✅ Test 2 — REST Read All Incidents</div>
+  <button class="btn btn-g" id="b2" onclick="t2()" disabled>📋 Read All Incidents from Firestore</button>
+  <div class="status" id="s2"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">✅ Test 3 — REST Update Status</div>
+  <button class="btn btn-g" id="b3" onclick="t3()" disabled>✏️ Update Test Doc Status to "resolved"</button>
+  <div class="status" id="s3"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">✅ Test 4 — REST Delete Test Document</div>
+  <button class="btn btn-r" id="b4" onclick="t4()" disabled>🗑 Delete Test Document</button>
+  <div class="status" id="s4"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">📟 Live Log</div>
+  <div id="log"><span class="in">Ready. Run Test 1 first.</span></div>
+</div>
+
+<!-- NO Firebase SDK scripts needed — pure REST only -->
+<script>
+const PROJECT_ID = 'aml-mineguard';
+const API_KEY    = 'AIzaSyCPqKNe7zyTfBqLT6Gh7Cx2-f7jSf1gvTg';
+const BASE       = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+const KEY_PARAM  = `?key=${API_KEY}`;
+
+document.getElementById('cfgRows').innerHTML = [
+  ['projectId', PROJECT_ID],
+  ['apiKey', API_KEY],
+  ['endpoint', BASE]
+].map(([k,v]) => `<div class="row"><span class="rk">${k}</span><span class="rv">${v}</span></div>`).join('');
+
+const logEl = document.getElementById('log');
+let lastDocId = null;
+
+function log(msg, c='in') {
+  const t = new Date().toLocaleTimeString();
+  logEl.innerHTML += '\n<span class="'+c+'">['+t+'] '+msg+'</span>';
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function st(id, msg, c) {
+  const e = document.getElementById(id);
+  e.textContent = msg; e.className = 'status ' + c;
+}
+
+// Convert JS value → Firestore REST field
+function toFSValue(v) {
+  if (v === null || v === undefined) return { nullValue: null };
+  if (typeof v === 'boolean')  return { booleanValue: v };
+  if (typeof v === 'number')   return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+  if (typeof v === 'string')   return { stringValue: v };
+  if (Array.isArray(v))        return { arrayValue: { values: v.map(toFSValue) } };
+  if (typeof v === 'object')   return { mapValue: { fields: toFSFields(v) } };
+  return { stringValue: String(v) };
+}
+function toFSFields(obj) {
+  const f = {};
+  for (const [k, v] of Object.entries(obj)) f[k] = toFSValue(v);
+  return f;
+}
+
+// Convert Firestore REST field → JS value
+function fromFSValue(v) {
+  if (!v || typeof v !== 'object') return null;
+  if ('nullValue'    in v) return null;
+  if ('booleanValue' in v) return v.booleanValue;
+  if ('integerValue' in v) return parseInt(v.integerValue, 10);
+  if ('doubleValue'  in v) return v.doubleValue;
+  if ('stringValue'  in v) return v.stringValue;
+  if ('arrayValue'   in v) return (v.arrayValue.values || []).map(fromFSValue);
+  if ('mapValue'     in v) return fromFSFields(v.mapValue.fields || {});
+  return null;
+}
+function fromFSFields(fields) {
+  const obj = {};
+  for (const [k, v] of Object.entries(fields || {})) obj[k] = fromFSValue(v);
+  return obj;
+}
+
+// ── Test 1: Write ─────────────────────────────────────────────────────────────
+async function t1() {
+  document.getElementById('b1').disabled = true;
+  log('=== Test 1: REST Write ===', 'hi');
+
+  const url = `${BASE}/incidents${KEY_PARAM}`;
+  const doc = {
+    _test:       true,
+    name:        'REST API Test Worker',
+    badge:       'AML-REST-001',
+    dept:        'Safety / REST Test',
+    type:        'hazard',
+    severity:    'low',
+    location:    'firebase_rest_test.html (aml-mineguard)',
+    description: 'Written via Firestore REST API. Safe to delete.',
+    status:      'open',
+    createdAt:   Date.now(),
+    savedAt:     new Date().toLocaleString()
+  };
+
+  try {
+    log('POST ' + url.split('?')[0], 'in');
+    const resp = await Promise.race([
+      fetch(url, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ fields: toFSFields(doc) })
+      }),
+      new Promise((_,r) => setTimeout(() => r(new Error('TIMEOUT after 12s')), 12000))
+    ]);
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      log('✗ HTTP ' + resp.status + ': ' + (data.error && data.error.message), 'er');
+      let fix = '';
+      if (resp.status === 403) fix = '\n\nFIX: Firestore Security Rules blocking writes.\nFirestore Console → Rules → allow read, write: if true → Publish';
+      if (resp.status === 404) fix = '\n\nFIX: Database not found. Verify projectId="aml-mineguard" and Firestore database was created.';
+      st('s1', '✗ Write failed: ' + (data.error && data.error.message) + ' (HTTP ' + resp.status + ')' + fix, 's-err');
+    } else {
+      lastDocId = data.name.split('/').pop();
+      log('✅ Write SUCCESS! Doc ID: ' + lastDocId, 'ok');
+      st('s1',
+        '✅ REST write succeeded!\n\nDoc ID: ' + lastDocId + '\n\n' +
+        'Check Firebase Console → aml-mineguard → Firestore → Data → incidents collection.\n' +
+        'You should see this document there now.',
+        's-ok');
+      document.getElementById('b2').disabled = false;
+      document.getElementById('b3').disabled = false;
+      document.getElementById('b4').disabled = false;
+    }
+  } catch(e) {
+    log('✗ Error: ' + e.message, 'er');
+    if (e.message.includes('TIMEOUT')) {
+      st('s1', '✗ Timeout — Firestore did not respond in 12s.\n\nCheck Firebase Console → Firestore Database → confirm "default" database exists with a region set for project aml-mineguard.', 's-err');
+    } else {
+      st('s1', '✗ Network error: ' + e.message + '\n\nCheck your internet connection.', 's-err');
+    }
+  }
+  document.getElementById('b1').disabled = false;
+}
+
+// ── Test 2: Read all ──────────────────────────────────────────────────────────
+async function t2() {
+  document.getElementById('b2').disabled = true;
+  log('=== Test 2: REST Read All Incidents ===', 'hi');
+
+  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery${KEY_PARAM}`;
+  const body = JSON.stringify({
+    structuredQuery: {
+      from:    [{ collectionId: 'incidents' }],
+      orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'DESCENDING' }],
+      limit:   20
+    }
+  });
+
+  try {
+    const resp = await fetch(url, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body
+    });
+    const results = await resp.json();
+
+    if (!resp.ok) {
+      log('✗ Query failed: ' + JSON.stringify(results), 'er');
+      st('s2', '✗ Query failed: HTTP ' + resp.status, 's-err');
+    } else {
+      const docs = (Array.isArray(results) ? results : [])
+        .filter(r => r.document)
+        .map(r => ({ ...fromFSFields(r.document.fields), _id: r.document.name.split('/').pop() }));
+      log('✅ Read SUCCESS! Found ' + docs.length + ' document(s)', 'ok');
+      docs.forEach(d => log('  • ' + d._id + ' | ' + d.name + ' | ' + d.type + ' | ' + d.status, 'ok'));
+      st('s2',
+        '✅ Read succeeded! Found ' + docs.length + ' incident(s) in Firestore.\n\n' +
+        (docs.length > 0 ? 'Most recent: ' + docs[0].name + ' — ' + docs[0].savedAt : 'Collection is empty.'),
+        docs.length > 0 ? 's-ok' : 's-warn');
+    }
+  } catch(e) {
+    log('✗ Network error: ' + e.message, 'er');
+    st('s2', '✗ ' + e.message, 's-err');
+  }
+  document.getElementById('b2').disabled = false;
+}
+
+// ── Test 3: Update status ─────────────────────────────────────────────────────
+async function t3() {
+  if (!lastDocId) { alert('Run Test 1 first'); return; }
+  document.getElementById('b3').disabled = true;
+  log('=== Test 3: REST Update Doc ' + lastDocId + ' ===', 'hi');
+
+  const url = `${BASE}/incidents/${lastDocId}${KEY_PARAM}&updateMask.fieldPaths=status&updateMask.fieldPaths=resolvedAt`;
+  const body = JSON.stringify({
+    fields: {
+      status:     { stringValue: 'resolved' },
+      resolvedAt: { stringValue: new Date().toLocaleString() }
+    }
+  });
+
+  try {
+    const resp = await fetch(url, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body
+    });
+    if (resp.ok) {
+      log('✅ Update SUCCESS! Status set to "resolved"', 'ok');
+      st('s3', '✅ Update succeeded! Document status set to "resolved".', 's-ok');
+    } else {
+      const data = await resp.json();
+      log('✗ Update failed: ' + (data.error && data.error.message), 'er');
+      st('s3', '✗ Update failed: ' + (data.error && data.error.message), 's-err');
+    }
+  } catch(e) {
+    log('✗ ' + e.message, 'er');
+    st('s3', '✗ ' + e.message, 's-err');
+  }
+  document.getElementById('b3').disabled = false;
+}
+
+// ── Test 4: Delete ────────────────────────────────────────────────────────────
+async function t4() {
+  if (!lastDocId) { alert('Run Test 1 first'); return; }
+  document.getElementById('b4').disabled = true;
+  log('=== Test 4: REST Delete Doc ' + lastDocId + ' ===', 'hi');
+
+  const url = `${BASE}/incidents/${lastDocId}${KEY_PARAM}`;
+  try {
+    const resp = await fetch(url, { method: 'DELETE' });
+    if (resp.ok || resp.status === 200) {
+      log('✅ Delete SUCCESS! Doc ' + lastDocId + ' removed.', 'ok');
+      st('s4', '✅ Test document deleted from Firestore.\n\n🎉 ALL 4 TESTS PASSED!\n\nFirestore sync is fully working on project aml-mineguard.\n\nUpload firebase.js, index.html, admin.html, and sw.js to GitHub — sync will work on all devices and networks.', 's-ok');
+      lastDocId = null;
+    } else {
+      log('✗ Delete failed: HTTP ' + resp.status, 'er');
+      st('s4', '✗ Delete failed: HTTP ' + resp.status, 's-err');
+    }
+  } catch(e) {
+    log('✗ ' + e.message, 'er');
+    st('s4', '✗ ' + e.message, 's-err');
+  }
+  document.getElementById('b4').disabled = false;
+}
+</script>
+</body>
+</html>

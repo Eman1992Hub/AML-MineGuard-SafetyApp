@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="description" content="MineGuard - Mining Safety Companion App" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MineGuard" />
+  <title>MineGuard – Mining Safety App</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- SPLASH SCREEN -->
+  <div id="splash">
+    <div class="splash-inner">
+      <div class="splash-icon">⛏️</div>
+      <h1 class="splash-title">MINE<span>GUARD</span></h1>
+      <p class="splash-sub">Mining Safety Companion</p>
+      <div class="splash-aml-logo">
+        <img src="icons/aml-logo.jpg" alt="ArcelorMittal Liberia" class="aml-img-splash" />
+        <div class="splash-aml-label">LIBERIA</div>
+      </div>
+      <div class="splash-bar"><div class="splash-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- APP SHELL -->
+  <div id="app" class="hidden">
+
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="header-left">
+        <span class="header-icon">⛏️</span>
+        <span class="header-title">MINE<span>GUARD</span></span>
+      </div>
+      <div class="header-right">
+        <!-- Language Toggle -->
+        <div class="lang-toggle">
+          <button class="lang-btn active" data-lang="en" onclick="switchLanguage('en')">EN</button>
+          <span class="lang-divider">|</span>
+          <button class="lang-btn" data-lang="fr" onclick="switchLanguage('fr')">FR</button>
+        </div>
+        <span class="offline-badge" id="offlineBadge">● OFFLINE</span>
+      </div>
+    </header>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-tab="home" onclick="showTab('home', this)">
+        <span class="nav-icon">🏠</span>
+        <span id="nav-home">Home</span>
+      </button>
+      <button class="nav-btn" data-tab="glossary" onclick="showTab('glossary', this)">
+        <span class="nav-icon">📖</span>
+        <span id="nav-glossary">Glossary</span>
+      </button>
+      <button class="nav-btn" data-tab="ppe" onclick="showTab('ppe', this)">
+        <span class="nav-icon">🦺</span>
+        <span id="nav-ppe">PPE</span>
+      </button>
+      <button class="nav-btn" data-tab="jsa" onclick="showTab('jsa', this)">
+        <span class="nav-icon">📋</span>
+        <span id="nav-jsa">JSA</span>
+      </button>
+      <button class="nav-btn" data-tab="incident" onclick="showTab('incident', this)">
+        <span class="nav-icon">📸</span>
+        <span id="nav-report">Report</span>
+      </button>
+      <button class="nav-btn" data-tab="emergency" onclick="showTab('emergency', this)">
+        <span class="nav-icon">🚨</span>
+        <span id="nav-sos">SOS</span>
+      </button>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- =================== HOME TAB =================== -->
+      <section id="tab-home" class="tab-section active">
+
+        <!-- ArcelorMittal Liberia Banner -->
+        <div class="aml-banner">
+          <div class="aml-banner-logo">
+            <img src="icons/aml-logo.jpg" alt="ArcelorMittal Liberia" class="aml-img-banner" />
+          </div>
+          <div class="aml-banner-info">
+            <div class="aml-tagline">Iron Ore Mining</div>
+            <div class="aml-desc">Nimba County, Liberia</div>
+            <div class="aml-sub">World's Leading Steel &amp; Mining Company</div>
+          </div>
+        </div>
+
+        <div class="home-hero">
+          <div class="hero-text">
+            <h2 id="heroTitle">Stay Safe.<br/>Work Smart.</h2>
+            <p id="heroSub">Your on-site mining safety companion. Works fully offline.</p>
+          </div>
+          <div class="hero-badge">⛏️</div>
+        </div>
+
+        <div class="quick-access">
+          <h3 class="section-title" id="quickAccessTitle">Quick Access</h3>
+          <div class="quick-grid">
+            <button class="quick-card" onclick="showTab('glossary', document.querySelector('[data-tab=glossary]'))">
+              <span class="qc-icon">📖</span>
+              <span class="qc-label" id="qc-glossary-label">Glossary</span>
+              <span class="qc-count" id="glossaryCount">0 terms</span>
+            </button>
+            <button class="quick-card" onclick="showTab('ppe', document.querySelector('[data-tab=ppe]'))">
+              <span class="qc-icon">🦺</span>
+              <span class="qc-label" id="qc-ppe-label">PPE Guide</span>
+              <span class="qc-count" id="ppeQuickCount">12 items</span>
+            </button>
+            <button class="quick-card" onclick="showTab('jsa', document.querySelector('[data-tab=jsa]'))">
+              <span class="qc-icon">📋</span>
+              <span class="qc-label" id="qc-jsa-label">JSA Tool</span>
+              <span class="qc-count" id="qc-jsa-count">Risk form</span>
+            </button>
+            <button class="quick-card danger" onclick="showTab('emergency', document.querySelector('[data-tab=emergency]'))">
+              <span class="qc-icon">🚨</span>
+              <span class="qc-label" id="qc-emergency-label">Emergency</span>
+              <span class="qc-count" id="qc-emergency-count">Tap now</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Admin link -->
+        <a href="admin.html" class="admin-link-btn">
+          🖥️ <span id="adminLinkText">Open Admin Dashboard →</span>
+        </a>
+
+        <!-- Notification Widget -->
+        <div id="notifWidget"></div>
+
+        <!-- Safety Tip -->
+        <div class="safety-tip-box">
+          <div class="tip-label" id="tipLabel">💡 SAFETY TIP OF THE DAY</div>
+          <div class="tip-text" id="dailyTip">Loading tip...</div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-num" id="glossaryStat">229</div>
+            <div class="stat-label" id="statTermsDefined">Terms Defined</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">12</div>
+            <div class="stat-label" id="statPPEItems">PPE Items</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">100%</div>
+            <div class="stat-label" id="statOffline">Offline Ready</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================== GLOSSARY TAB =================== -->
+      <section id="tab-glossary" class="tab-section">
+        <div class="tab-header">
+          <h2 class="tab-title" id="glossaryTabTitle">Mining Glossary</h2>
+          <p class="tab-sub" id="glossaryTabSub">Tap any term to expand its definition</p>
+        </div>
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="glossarySearch" placeholder="Search terms..." oninput="filterGlossary(this.value)" />
+        </div>
+        <div class="filter-row" id="letterFilter"></div>
+        <div id="glossaryList" class="glossary-list"></div>
+      </section>
+
+      <!-- =================== PPE TAB =================== -->
+      <section id="tab-ppe" class="tab-section">
+        <div class="tab-header">
+          <h2 class="tab-title" id="ppeTabTitle">PPE Reference Guide</h2>
+          <p class="tab-sub" id="ppeTabSub">Personal Protective Equipment — know what to wear and why</p>
+        </div>
+        <div id="ppeList" class="ppe-list"></div>
+      </section>
+
+      <!-- =================== JSA TAB =================== -->
+      <section id="tab-jsa" class="tab-section">
+        <div class="tab-header">
+          <h2 class="tab-title" id="jsaTabTitle">Job Safety Analysis</h2>
+          <p class="tab-sub" id="jsaTabSub">Complete a JSA before starting any high-risk task</p>
+        </div>
+        <div class="jsa-form">
+          <div class="form-group">
+            <label id="label-jsa-worker">Worker Name</label>
+            <input type="text" id="jsa-worker" placeholder="Enter your full name" />
+          </div>
+          <div class="form-group">
+            <label id="label-jsa-task">Job / Task Description</label>
+            <input type="text" id="jsa-task" placeholder="Describe the task" />
+          </div>
+          <div class="form-group">
+            <label id="label-jsa-location">Location / Area</label>
+            <input type="text" id="jsa-location" placeholder="e.g. Pit 3 - Bench 12" />
+          </div>
+          <div class="form-group">
+            <label id="label-jsa-date">Date</label>
+            <input type="date" id="jsa-date" />
+          </div>
+
+          <h3 class="jsa-section-title" id="jsaHazardTitle">⚠️ Hazard Identification</h3>
+          <div id="hazardRows">
+            <div class="hazard-row">
+              <input type="text" placeholder="Hazard identified" class="hazard-input" />
+              <select class="risk-select">
+                <option value="">Risk Level</option>
+                <option value="low">🟢 Low</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="high">🔴 High</option>
+                <option value="critical">⛔ Critical</option>
+              </select>
+              <input type="text" placeholder="Control measure" class="control-input" />
+            </div>
+          </div>
+          <button class="btn-add-hazard" id="btnAddHazard" onclick="addHazardRow()">+ Add Hazard</button>
+
+          <h3 class="jsa-section-title" id="jsaPPETitle">✅ PPE Required for This Task</h3>
+          <div class="ppe-checklist" id="ppeChecklist"></div>
+
+          <div class="form-group">
+            <label id="label-jsa-supervisor">Supervisor / Approver Name</label>
+            <input type="text" id="jsa-supervisor" placeholder="Supervisor name" />
+          </div>
+
+          <div class="jsa-actions">
+            <button class="btn-submit" id="btnSaveJSA" onclick="submitJSA()">📄 Save JSA</button>
+            <button class="btn-clear" id="btnClearJSA" onclick="clearJSA()">🗑 Clear Form</button>
+          </div>
+          <div id="jsaConfirm" class="jsa-confirm hidden">✅ JSA saved successfully! Stay safe on site.</div>
+        </div>
+        <div id="savedJSAs" class="saved-jsas"></div>
+      </section>
+
+      <!-- =================== EMERGENCY TAB =================== -->
+      <section id="tab-emergency" class="tab-section">
+        <div class="emergency-header">
+          <div class="emergency-pulse">🚨</div>
+          <h2 id="emergencyTabTitle">EMERGENCY</h2>
+          <p id="emergencyTabSub">Immediate actions &amp; contacts</p>
+        </div>
+
+        <div class="emergency-steps">
+          <h3 class="section-title" id="emergencyActionsTitle">🔴 Immediate Actions</h3>
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <div class="step-text" id="emergencyStep1"><strong>STOP</strong> all work immediately and alert nearby workers</div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <div class="step-text" id="emergencyStep2"><strong>ASSESS</strong> the situation — do not enter a danger zone</div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <div class="step-text" id="emergencyStep3"><strong>CALL</strong> the emergency number and give your location</div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">4</div>
+            <div class="step-text" id="emergencyStep4"><strong>EVACUATE</strong> to the nearest muster point</div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">5</div>
+            <div class="step-text" id="emergencyStep5"><strong>REPORT</strong> to supervisor and await further instructions</div>
+          </div>
+        </div>
+
+        <div class="contacts-section">
+          <h3 class="section-title" id="emergencyContactsTitle">📞 Emergency Contacts</h3>
+          <div id="emergencyContacts" class="contacts-list"></div>
+          <button class="btn-add-contact" id="btnAddContact" onclick="showAddContact()">+ Add Site Contact</button>
+          <div id="addContactForm" class="add-contact-form hidden">
+            <input type="text" id="contactName" placeholder="Contact name / role" />
+            <input type="tel" id="contactNumber" placeholder="Phone number" />
+            <button id="btnSaveContact" onclick="saveContact()">Save</button>
+            <button id="btnCancelContact" onclick="hideAddContact()">Cancel</button>
+          </div>
+        </div>
+
+        <div class="first-aid-section">
+          <h3 class="section-title" id="firstAidTitle">🩺 First Aid Quick Guide</h3>
+          <div id="firstAidList" class="first-aid-list"></div>
+        </div>
+      </section>
+
+      <!-- =================== INCIDENT REPORT TAB =================== -->
+      <section id="tab-incident" class="tab-section">
+        <div class="tab-header">
+          <h2 class="tab-title" id="incTabTitle">Incident <span style="color:var(--accent-yellow)">Report</span></h2>
+          <p class="tab-sub" id="incTabSub">Report hazards, near misses, and incidents with photo evidence</p>
+        </div>
+
+        <div class="incident-form">
+
+          <!-- Reporter Info -->
+          <div class="incident-block">
+            <div class="incident-block-title" id="incReporterTitle">👷 Reporter Information</div>
+            <div class="form-group">
+              <label id="label-inc-name">Full Name</label>
+              <input type="text" id="inc-name" placeholder="Your full name" />
+            </div>
+            <div class="form-group">
+              <label id="label-inc-badge">Employee ID / Badge No.</label>
+              <input type="text" id="inc-badge" placeholder="e.g. AML-2045" />
+            </div>
+            <div class="form-group">
+              <label id="label-inc-dept">Department / Crew</label>
+              <input type="text" id="inc-dept" placeholder="e.g. Drilling Crew B" />
+            </div>
+          </div>
+
+          <!-- Incident Details -->
+          <div class="incident-block">
+            <div class="incident-block-title" id="incDetailsTitle">📋 Incident Details</div>
+            <div class="form-group">
+              <label id="label-inc-datetime">Date &amp; Time</label>
+              <input type="datetime-local" id="inc-datetime" />
+            </div>
+            <div class="form-group">
+              <label id="label-inc-location">Location / Area</label>
+              <input type="text" id="inc-location" placeholder="e.g. Pit 3 - Bench 6, North Wall" />
+            </div>
+            <div class="form-group">
+              <label id="label-inc-type">Incident Type</label>
+              <select id="inc-type">
+                <option value="">-- Select type --</option>
+                <option value="near_miss">⚠️ Near Miss</option>
+                <option value="hazard">🔶 Hazard Observation</option>
+                <option value="injury">🩺 Injury / Illness</option>
+                <option value="property">🔧 Property Damage</option>
+                <option value="environmental">🌿 Environmental</option>
+                <option value="security">🔒 Security</option>
+                <option value="fire">🔥 Fire / Explosion</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label id="label-inc-severity">Severity</label>
+              <div class="severity-row">
+                <button class="sev-btn" data-sev="low" onclick="setSeverity('low', this)">🟢 Low</button>
+                <button class="sev-btn" data-sev="medium" onclick="setSeverity('medium', this)">🟡 Medium</button>
+                <button class="sev-btn" data-sev="high" onclick="setSeverity('high', this)">🔴 High</button>
+                <button class="sev-btn" data-sev="critical" onclick="setSeverity('critical', this)">⛔ Critical</button>
+              </div>
+              <input type="hidden" id="inc-severity" value="" />
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="incident-block">
+            <div class="incident-block-title" id="incWhatTitle">📝 What Happened?</div>
+            <div class="form-group">
+              <label id="label-inc-description">Describe the incident in detail</label>
+              <textarea id="inc-description" rows="4" placeholder="Describe exactly what happened..."></textarea>
+            </div>
+            <div class="form-group">
+              <label id="label-inc-action">Immediate Action Taken</label>
+              <textarea id="inc-action" rows="3" placeholder="What did you do immediately after?"></textarea>
+            </div>
+          </div>
+
+          <!-- Photo Evidence -->
+          <div class="incident-block">
+            <div class="incident-block-title" id="incPhotoTitle">📸 Photo Evidence</div>
+            <p class="photo-hint" id="incPhotoHint">Attach up to 3 photos of the hazard or incident scene</p>
+            <div class="photo-btn-row">
+              <button class="photo-action-btn camera-btn" onclick="document.getElementById('photoCamera').click()">
+                <span>📷</span>
+                <span id="btnTakePhoto">Take Photo</span>
+                <span id="labelOpensCamera" style="font-size:10px;color:rgba(0,0,0,0.5);">Opens camera</span>
+              </button>
+              <button class="photo-action-btn gallery-btn" onclick="document.getElementById('photoGallery').click()">
+                <span>🖼️</span>
+                <span id="btnChoosePhoto">Choose Photo</span>
+                <span id="labelFromGallery" style="font-size:10px;color:rgba(255,255,255,0.5);">From gallery</span>
+              </button>
+            </div>
+            <input type="file" id="photoCamera" accept="image/*" capture="environment" onchange="handlePhotos(this)" style="display:none" />
+            <input type="file" id="photoGallery" accept="image/*" multiple onchange="handlePhotos(this)" style="display:none" />
+            <div id="photoCount" style="font-size:12px;color:var(--text-muted);margin-top:10px;text-align:center;"></div>
+            <div id="photoPreviewRow" class="photo-preview-row"></div>
+          </div>
+
+          <!-- Witnesses -->
+          <div class="incident-block">
+            <div class="incident-block-title" id="incWitnessTitle">👥 Witnesses (if any)</div>
+            <div class="form-group">
+              <input type="text" id="inc-witnesses" placeholder="Names of any witnesses" />
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <div class="incident-actions">
+            <button class="btn-submit" id="btnSubmitIncident" onclick="submitIncident()">📤 Submit Report</button>
+            <button class="btn-clear" id="btnClearIncident" onclick="clearIncident()">🗑 Clear</button>
+          </div>
+          <div id="incidentConfirm" class="jsa-confirm hidden">✅ Incident report submitted!</div>
+        </div>
+
+        <div id="pastIncidents" class="saved-jsas" style="padding:0 16px 24px;"></div>
+      </section>
+
+    </main>
+
+    <!-- Firebase sync status banner (shown on home tab) -->
+    <div id="syncBanner" class="sync-banner" style="display:none;"></div>
+  </div>
+
+  <!-- MineGuard files — load order: data → lang → firebase → app -->
+  <!-- firebase.js uses Firestore REST API — no SDK scripts needed -->
+  <script src="data.js"></script>
+  <script src="lang.js"></script>
+  <script src="firebase.js"></script>
+  <script src="app.js"></script>
+
+  <!-- Set correct active lang button on load -->
+  <script>
+    (function() {
+      const lang = localStorage.getItem('mineguard_lang') || 'en';
+      document.querySelectorAll('.lang-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.lang === lang);
+      });
+    })();
+  </script>
+</body>
+</html>

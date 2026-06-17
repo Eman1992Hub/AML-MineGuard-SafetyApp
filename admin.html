@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MineGuard Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d0f1a;
+      --bg-card: #161827;
+      --bg-card2: #1e2135;
+      --bg-sidebar: #111320;
+      --yellow: #f5c518;
+      --orange: #ff8c00;
+      --red: #e63946;
+      --green: #2ec4b6;
+      --blue: #4361ee;
+      --purple: #7b2d8b;
+      --text: #f0f0f0;
+      --text2: #9099b0;
+      --text3: #5a6180;
+      --border: rgba(255,255,255,0.07);
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px; min-height: 100vh; }
+
+    /* ---- LOGIN SCREEN ---- */
+    #loginScreen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at top, #1a1c2e, #0d0f1a);
+    }
+    .login-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 360px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .login-logo { font-size: 48px; margin-bottom: 8px; }
+    .login-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      margin-bottom: 4px;
+    }
+    .login-title span { color: var(--yellow); }
+    .login-sub { font-size: 12px; color: var(--text2); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 32px; }
+    .login-label { display: block; text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--text2); text-transform: uppercase; margin-bottom: 6px; }
+    .login-input {
+      width: 100%; background: var(--bg-card2); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-family: 'Barlow', sans-serif;
+      font-size: 15px; padding: 12px 16px; outline: none; margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    .login-input:focus { border-color: rgba(245,197,24,0.4); }
+    .login-btn {
+      width: 100%; background: var(--yellow); color: #000; border: none;
+      border-radius: 10px; font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px; font-weight: 800; letter-spacing: 1px;
+      padding: 14px; cursor: pointer; transition: opacity 0.2s;
+    }
+    .login-btn:hover { opacity: 0.9; }
+    .login-error { color: var(--red); font-size: 13px; margin-top: 10px; display: none; }
+    .login-hint { font-size: 11px; color: var(--text3); margin-top: 20px; }
+
+    /* ---- DASHBOARD LAYOUT ---- */
+    #dashboard { display: none; min-height: 100vh; }
+
+    .dash-layout { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      z-index: 100;
+      overflow-y: auto;
+    }
+    .sidebar-brand {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+    .sidebar-title span { color: var(--yellow); }
+    .sidebar-sub { font-size: 10px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
+    .sidebar-nav { padding: 16px 12px; flex: 1; }
+    .sidebar-section { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: var(--text3); text-transform: uppercase; padding: 12px 8px 6px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 8px; cursor: pointer;
+      color: var(--text2); font-size: 14px; font-weight: 500;
+      transition: all 0.2s; margin-bottom: 2px;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .nav-item.active { background: rgba(245,197,24,0.1); color: var(--yellow); }
+    .nav-item .ni { font-size: 18px; }
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text3);
+    }
+    .logout-btn {
+      display: flex; align-items: center; gap: 8px;
+      color: var(--red); cursor: pointer; font-size: 13px; font-weight: 600;
+      padding: 8px 12px; border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .logout-btn:hover { background: rgba(230,57,70,0.1); }
+
+    /* Main content */
+    .dash-main {
+      margin-left: 240px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .dash-topbar {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .topbar-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .admin-badge {
+      background: rgba(245,197,24,0.1);
+      border: 1px solid rgba(245,197,24,0.3);
+      color: var(--yellow);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+    }
+    .live-time { font-size: 12px; color: var(--text2); }
+
+    .dash-content { padding: 28px; flex: 1; }
+
+    /* Panels */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* Stats row */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .stat-box.yellow::before { background: var(--yellow); }
+    .stat-box.red::before { background: var(--red); }
+    .stat-box.green::before { background: var(--green); }
+    .stat-box.blue::before { background: var(--blue); }
+    .stat-box.orange::before { background: var(--orange); }
+    .stat-icon { font-size: 28px; margin-bottom: 10px; }
+    .stat-value {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 38px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-label { font-size: 12px; color: var(--text2); font-weight: 500; }
+    .stat-change { font-size: 11px; color: var(--green); margin-top: 6px; }
+
+    /* Section headers */
+    .section-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-hdr h3 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .filter-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-family: 'Barlow', sans-serif;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: rgba(245,197,24,0.1);
+      color: var(--yellow);
+      border-color: rgba(245,197,24,0.3);
+    }
+    .filter-row-dash { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+
+    /* Incident Cards */
+    .incident-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .incident-card:hover { border-color: rgba(245,197,24,0.25); }
+    .inc-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .inc-card-left { flex: 1; }
+    .inc-card-type {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 3px;
+    }
+    .inc-card-meta {
+      font-size: 12px;
+      color: var(--text2);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .inc-card-meta span { display: flex; align-items: center; gap: 4px; }
+    .sev-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .sev-tag.low { background: rgba(46,196,182,0.15); color: var(--green); }
+    .sev-tag.medium { background: rgba(255,140,0,0.15); color: var(--orange); }
+    .sev-tag.high { background: rgba(230,57,70,0.15); color: var(--red); }
+    .sev-tag.critical { background: rgba(230,57,70,0.25); color: #ff6b6b; border: 1px solid rgba(230,57,70,0.4); }
+    .inc-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+    .inc-photos { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .inc-thumb {
+      width: 60px; height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .inc-thumb:hover { border-color: var(--yellow); }
+    .inc-status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .status-dot.open { background: var(--orange); }
+    .status-dot.reviewing { background: var(--blue); }
+    .status-dot.resolved { background: var(--green); }
+    .status-text { font-size: 12px; color: var(--text2); }
+    .resolve-btn {
+      margin-left: auto;
+      background: none;
+      border: 1px solid rgba(46,196,182,0.3);
+      color: var(--green);
+      font-family: 'Barlow', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .resolve-btn:hover { background: rgba(46,196,182,0.1); }
+
+    /* JSA panel */
+    .jsa-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 10px;
+    }
+    .jsa-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .jsa-card-task { font-weight: 700; font-size: 15px; }
+    .jsa-card-meta { font-size: 12px; color: var(--text2); margin-top: 3px; }
+    .jsa-hazard-count {
+      background: rgba(245,197,24,0.1);
+      border: 1px solid rgba(245,197,24,0.2);
+      color: var(--yellow);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+
+    /* Photo modal */
+    .photo-modal {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.9);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+    .photo-modal.open { display: flex; }
+    .photo-modal img { max-width: 90vw; max-height: 90vh; border-radius: 12px; }
+    .photo-modal-close {
+      position: absolute; top: 20px; right: 20px;
+      background: rgba(255,255,255,0.1); border: none;
+      color: #fff; font-size: 24px; width: 44px; height: 44px;
+      border-radius: 50%; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text3);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-text { font-size: 15px; }
+
+    /* Export btn */
+    .export-btn {
+      background: var(--yellow);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .export-btn:hover { opacity: 0.85; }
+
+    /* Chart bars */
+    .chart-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .chart-item { display: flex; align-items: center; gap: 12px; }
+    .chart-label { width: 110px; font-size: 12px; color: var(--text2); text-align: right; flex-shrink: 0; }
+    .chart-bar-bg { flex: 1; background: var(--bg-card2); border-radius: 4px; height: 20px; overflow: hidden; }
+    .chart-bar { height: 100%; border-radius: 4px; transition: width 0.8s ease; display: flex; align-items: center; padding-left: 8px; }
+    .chart-bar span { font-size: 11px; font-weight: 700; color: #000; }
+
+    /* Two column grid */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+    .card-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .card-block-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    /* Settings */
+    .settings-group { margin-bottom: 24px; }
+    .settings-group-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text2);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-label { font-size: 14px; font-weight: 500; }
+    .setting-desc { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .setting-input {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Barlow', sans-serif;
+      font-size: 14px;
+      padding: 8px 12px;
+      outline: none;
+      min-width: 180px;
+    }
+    .setting-input:focus { border-color: rgba(245,197,24,0.4); }
+    .save-settings-btn {
+      background: var(--yellow); color: #000; border: none;
+      border-radius: 8px; font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px; font-weight: 800; letter-spacing: 1px;
+      padding: 12px 28px; cursor: pointer; margin-top: 16px;
+    }
+
+    /* Table */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--text2);
+      padding: 10px 12px; text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      padding: 12px 12px; font-size: 13px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Scrollbar */
+    /* ---- FIREBASE SYNC INDICATOR ---- */
+    .sync-indicator {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; padding: 6px 14px; border-radius: 20px;
+      font-weight: 600; letter-spacing: 0.5px;
+    }
+    .sync-indicator.synced  { background: rgba(46,196,182,0.12); color: #2ec4b6; border: 1px solid rgba(46,196,182,0.25); }
+    .sync-indicator.syncing { background: rgba(245,197,24,0.12); color: #f5c518; border: 1px solid rgba(245,197,24,0.25); }
+    .sync-indicator.offline { background: rgba(255,140,0,0.12);  color: #ff8c00; border: 1px solid rgba(255,140,0,0.25); }
+    .sync-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .sync-indicator.synced  .sync-dot { background:#2ec4b6; }
+    .sync-indicator.syncing .sync-dot { background:#f5c518; animation: pulse-dot 1s infinite; }
+    .sync-indicator.offline .sync-dot { background:#ff8c00; }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--bg-card2); border-radius: 2px; }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 200px; }
+      .dash-main { margin-left: 200px; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">⛏️</div>
+    <div class="login-title">MINE<span>GUARD</span></div>
+    <div class="login-sub">Admin Dashboard</div>
+    <label class="login-label">Username</label>
+    <input type="text" class="login-input" id="loginUser" placeholder="admin" />
+    <label class="login-label">Password</label>
+    <input type="password" class="login-input" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
+    <button class="login-btn" onclick="doLogin()">🔐 LOGIN</button>
+    <div class="login-error" id="loginError">❌ Invalid username or password</div>
+    <div class="login-hint">Default: admin / mineguard2024</div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="dashboard">
+  <div class="dash-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-title">⛏️ MINE<span>GUARD</span></div>
+        <div class="sidebar-sub">Safety Admin Portal</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">Main</div>
+        <div class="nav-item active" onclick="showPanel('overview', this)">
+          <span class="ni">📊</span> Overview
+        </div>
+        <div class="nav-item" onclick="showPanel('incidents', this)">
+          <span class="ni">📸</span> Incident Reports
+          <span id="incBadge" style="margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;"></span>
+        </div>
+        <div class="nav-item" onclick="showPanel('jsas', this)">
+          <span class="ni">📋</span> JSA Submissions
+        </div>
+        <div class="sidebar-section">Analysis</div>
+        <div class="nav-item" onclick="showPanel('analytics', this)">
+          <span class="ni">📈</span> Analytics
+        </div>
+        <div class="nav-item" onclick="showPanel('workers', this)">
+          <span class="ni">👷</span> Workers
+        </div>
+        <div class="sidebar-section">System</div>
+        <div class="nav-item" onclick="showPanel('settings', this)">
+          <span class="ni">⚙️</span> Settings
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="logout-btn" onclick="doLogout()">🚪 Log Out</div>
+        <div style="margin-top:8px;font-size:10px;">MineGuard v2.0 · AML Liberia</div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="dash-main">
+      <div class="dash-topbar">
+        <div class="topbar-title" id="topbarTitle">📊 Overview</div>
+        <div class="topbar-right">
+          <span class="admin-badge">ADMIN</span>
+          <div class="sync-indicator offline" id="syncIndicator">
+            <span class="sync-dot"></span>
+            <span id="syncLabel">Connecting...</span>
+          </div>
+          <span class="live-time" id="liveTime"></span>
+        </div>
+      </div>
+
+      <div class="dash-content">
+
+        <!-- OVERVIEW PANEL -->
+        <div class="panel active" id="panel-overview">
+          <div class="stats-grid">
+            <div class="stat-box yellow">
+              <div class="stat-icon">📸</div>
+              <div class="stat-value" id="stat-incidents">0</div>
+              <div class="stat-label">Total Incidents Reported</div>
+              <div class="stat-change" id="stat-open-count"></div>
+            </div>
+            <div class="stat-box red">
+              <div class="stat-icon">⛔</div>
+              <div class="stat-value" id="stat-critical">0</div>
+              <div class="stat-label">Critical / High Severity</div>
+            </div>
+            <div class="stat-box green">
+              <div class="stat-icon">📋</div>
+              <div class="stat-value" id="stat-jsas">0</div>
+              <div class="stat-label">JSAs Submitted</div>
+            </div>
+            <div class="stat-box blue">
+              <div class="stat-icon">✅</div>
+              <div class="stat-value" id="stat-resolved">0</div>
+              <div class="stat-label">Incidents Resolved</div>
+            </div>
+            <div class="stat-box orange">
+              <div class="stat-icon">👷</div>
+              <div class="stat-value" id="stat-workers">0</div>
+              <div class="stat-label">Active Reporters</div>
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div class="card-block">
+              <div class="card-block-title">⚠️ Recent Incidents</div>
+              <div id="recentIncidentsList"></div>
+            </div>
+            <div class="card-block">
+              <div class="card-block-title">📋 Recent JSAs</div>
+              <div id="recentJSAsList"></div>
+            </div>
+          </div>
+
+          <div class="card-block">
+            <div class="card-block-title">📊 Incidents by Type</div>
+            <div class="chart-row" id="typeChartRows"></div>
+          </div>
+        </div>
+
+        <!-- INCIDENTS PANEL -->
+        <div class="panel" id="panel-incidents">
+          <div class="section-hdr">
+            <h3>📸 All Incident Reports</h3>
+            <button class="export-btn" onclick="exportIncidents()">⬇️ Export CSV</button>
+          </div>
+          <div class="filter-row-dash">
+            <button class="filter-btn active" onclick="filterIncidents('all', this)">All</button>
+            <button class="filter-btn" onclick="filterIncidents('near_miss', this)">Near Miss</button>
+            <button class="filter-btn" onclick="filterIncidents('hazard', this)">Hazard</button>
+            <button class="filter-btn" onclick="filterIncidents('injury', this)">Injury</button>
+            <button class="filter-btn" onclick="filterIncidents('critical', this)">⛔ Critical</button>
+            <button class="filter-btn" onclick="filterIncidents('open', this)">🔴 Open</button>
+            <button class="filter-btn" onclick="filterIncidents('resolved', this)">✅ Resolved</button>
+          </div>
+          <div id="allIncidentsList"></div>
+        </div>
+
+        <!-- JSA PANEL -->
+        <div class="panel" id="panel-jsas">
+          <div class="section-hdr">
+            <h3>📋 JSA Submissions</h3>
+            <button class="export-btn" onclick="exportJSAs()">⬇️ Export CSV</button>
+          </div>
+          <div id="allJSAsList"></div>
+        </div>
+
+        <!-- ANALYTICS PANEL -->
+        <div class="panel" id="panel-analytics">
+          <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;margin-bottom:20px;">📈 Safety Analytics</h3>
+          <div class="two-col">
+            <div class="card-block">
+              <div class="card-block-title">🔴 Incidents by Severity</div>
+              <div class="chart-row" id="sevChartRows"></div>
+            </div>
+            <div class="card-block">
+              <div class="card-block-title">📍 Incidents by Location</div>
+              <div class="chart-row" id="locChartRows"></div>
+            </div>
+          </div>
+          <div class="card-block" style="margin-bottom:24px;">
+            <div class="card-block-title">📅 Incidents This Month (by day)</div>
+            <div class="chart-row" id="timeChartRows"></div>
+          </div>
+          <div class="card-block">
+            <div class="card-block-title">🏆 Top Reporters (Most Active Workers)</div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Worker Name</th>
+                  <th>Reports Submitted</th>
+                  <th>JSAs Filed</th>
+                  <th>Last Active</th>
+                </tr>
+              </thead>
+              <tbody id="topReportersTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- WORKERS PANEL -->
+        <div class="panel" id="panel-workers">
+          <div class="section-hdr">
+            <h3>👷 Worker Activity</h3>
+          </div>
+          <div class="card-block">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Badge / ID</th>
+                  <th>Department</th>
+                  <th>Incidents Filed</th>
+                  <th>JSAs Filed</th>
+                  <th>Last Report</th>
+                </tr>
+              </thead>
+              <tbody id="workersTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SETTINGS PANEL -->
+        <div class="panel" id="panel-settings">
+          <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;margin-bottom:20px;">⚙️ Dashboard Settings</h3>
+          <div class="card-block" style="max-width:600px;">
+            <div class="settings-group">
+              <div class="settings-group-title">Company Information</div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Company Name</div>
+                  <div class="setting-desc">Displayed in reports and exports</div>
+                </div>
+                <input type="text" class="setting-input" id="set-company" placeholder="ArcelorMittal Liberia" />
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Mine Site Name</div>
+                </div>
+                <input type="text" class="setting-input" id="set-site" placeholder="Nimba Mine" />
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Safety Manager</div>
+                </div>
+                <input type="text" class="setting-input" id="set-manager" placeholder="Manager name" />
+              </div>
+            </div>
+            <div class="settings-group">
+              <div class="settings-group-title">Admin Access</div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Admin Username</div>
+                </div>
+                <input type="text" class="setting-input" id="set-user" placeholder="admin" />
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Admin Password</div>
+                </div>
+                <input type="password" class="setting-input" id="set-pass" placeholder="New password" />
+              </div>
+            </div>
+            <div class="settings-group">
+              <div class="settings-group-title">Data Management</div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Clear All Incident Reports</div>
+                  <div class="setting-desc">Permanently deletes all stored reports</div>
+                </div>
+                <button onclick="clearAllData('incidents')" style="background:rgba(230,57,70,0.1);color:var(--red);border:1px solid rgba(230,57,70,0.3);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600;">Clear Reports</button>
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Clear All JSA Submissions</div>
+                  <div class="setting-desc">Permanently deletes all stored JSAs</div>
+                </div>
+                <button onclick="clearAllData('jsas')" style="background:rgba(230,57,70,0.1);color:var(--red);border:1px solid rgba(230,57,70,0.3);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600;">Clear JSAs</button>
+              </div>
+            </div>
+            <button class="save-settings-btn" onclick="saveSettings()">💾 Save Settings</button>
+            <div id="settingsSaved" style="display:none;margin-top:12px;color:var(--green);font-size:13px;font-weight:600;">✅ Settings saved!</div>
+          </div>
+        </div>
+
+      </div><!-- end dash-content -->
+    </div><!-- end dash-main -->
+  </div><!-- end dash-layout -->
+</div><!-- end dashboard -->
+
+<!-- Photo Modal -->
+<div class="photo-modal" id="photoModal" onclick="closePhotoModal()">
+  <button class="photo-modal-close">✕</button>
+  <img id="photoModalImg" src="" alt="Incident photo" />
+</div>
+
+<!-- Firebase v9 compat SDK — loaded before admin JS -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
+
+<script>
+// ============================================================
+// MINEGUARD ADMIN DASHBOARD — JAVASCRIPT v2 (Firebase)
+// ============================================================
+
+// ---- AUTH ----
+const DEFAULT_USER = 'admin';
+const DEFAULT_PASS = 'mineguard2024';
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value.trim();
+  const storedUser = localStorage.getItem('mg_admin_user') || DEFAULT_USER;
+  const storedPass = localStorage.getItem('mg_admin_pass') || DEFAULT_PASS;
+  if (u === storedUser && p === storedPass) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    initDashboard();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+
+function doLogout() {
+  detachAllListeners();
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginError').style.display = 'none';
+}
+
+// ---- PANELS ----
+function showPanel(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = { overview:'📊 Overview', incidents:'📸 Incident Reports', jsas:'📋 JSA Submissions', analytics:'📈 Analytics', workers:'👷 Workers', settings:'⚙️ Settings' };
+  document.getElementById('topbarTitle').textContent = titles[id] || id;
+  refreshPanel(id);
+}
+
+function refreshPanel(id) {
+  if (id === 'overview')   renderOverview();
+  if (id === 'incidents')  renderAllIncidents('all');
+  if (id === 'jsas')       renderAllJSAs();
+  if (id === 'analytics')  renderAnalytics();
+  if (id === 'workers')    renderWorkers();
+  if (id === 'settings')   loadSettings();
+}
+
+// ---- LIVE DATA STORE ----
+// These are kept in memory and updated by Firestore real-time listeners
+let _incidents = [];
+let _jsas      = [];
+let currentFilter = 'all';
+
+function getIncidents() { return _incidents; }
+function getJSAs()      { return _jsas; }
+
+// ---- SYNC INDICATOR ----
+function setSyncUI(state) {
+  // state: 'synced' | 'syncing' | 'offline'
+  const el    = document.getElementById('syncIndicator');
+  const label = document.getElementById('syncLabel');
+  if (!el || !label) return;
+  el.className = 'sync-indicator ' + state;
+  const map = {
+    synced:  '☁️ Cloud Synced',
+    syncing: '🔄 Syncing...',
+    offline: '📴 Offline Mode',
+  };
+  label.textContent = map[state] || 'Offline Mode';
+}
+
+// ---- CLOCK ----
+function startClock() {
+  function tick() {
+    const el = document.getElementById('liveTime');
+    if (el) el.textContent = new Date().toLocaleString();
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ---- INIT ----
+function initDashboard() {
+  startClock();
+
+  // Always show localStorage data immediately so dashboard is never blank
+  _incidents = JSON.parse(localStorage.getItem('mineguard_incidents') || '[]');
+  _jsas      = JSON.parse(localStorage.getItem('mineguard_jsas')      || '[]');
+  renderOverview();
+  updateIncidentBadge();
+
+  // Wait for Firestore REST connectivity check (resolves true/false)
+  setSyncUI('syncing');
+  Promise.race([
+    (window.MG && window.MG.ready) || Promise.resolve(false),
+    new Promise(resolve => setTimeout(() => resolve(window.MG ? window.MG.online : false), 8000))
+  ]).then(function(isOnline) {
+    if (isOnline) {
+      attachFirebaseListeners();
+    } else {
+      console.warn('[Admin] Firestore unavailable — showing localStorage data only');
+      setSyncUI('offline');
+    }
+  });
+}
+
+function attachFirebaseListeners() {
+  // Attach Firestore real-time listeners
+  subscribeIncidents(function(docs) {
+    _incidents = docs;
+    setSyncUI('synced');
+    updateIncidentBadge();
+    const active = document.querySelector('.panel.active');
+    if (active) refreshPanel(active.id.replace('panel-', ''));
+    else renderOverview();
+  });
+
+  subscribeJSAs(function(docs) {
+    _jsas = docs;
+    const active = document.querySelector('.panel.active');
+    if (active) {
+      const id = active.id.replace('panel-', '');
+      if (id === 'jsas' || id === 'analytics' || id === 'workers' || id === 'overview') {
+        refreshPanel(id);
+      }
+    }
+  });
+}
+
+/**
+ * Manual refresh — immediately re-fetches incidents and JSAs from
+ * Firestore via REST, bypassing the 15-second poll interval.
+ * Triggered by the 🔄 button next to the sync indicator.
+ */
+async function manualRefresh() {
+  const btn = document.getElementById('refreshBtn');
+  if (btn) btn.classList.add('spinning');
+
+  try {
+    const isOnline = await Promise.race([
+      (window.MG && window.MG.ready) || Promise.resolve(false),
+      new Promise(r => setTimeout(() => r(window.MG ? window.MG.online : false), 6000))
+    ]);
+
+    if (isOnline) {
+      const [incidents, jsas] = await Promise.all([
+        fetchIncidents(),
+        (typeof fetchJSAs === 'function') ? fetchJSAs() : Promise.resolve(_jsas)
+      ]);
+      _incidents = incidents;
+      if (jsas) _jsas = jsas;
+      setSyncUI('synced');
+    } else {
+      // Fall back to localStorage
+      _incidents = JSON.parse(localStorage.getItem('mineguard_incidents') || '[]');
+      _jsas      = JSON.parse(localStorage.getItem('mineguard_jsas')      || '[]');
+      setSyncUI('offline');
+    }
+
+    updateIncidentBadge();
+    const active = document.querySelector('.panel.active');
+    if (active) refreshPanel(active.id.replace('panel-', ''));
+    else renderOverview();
+
+  } catch (e) {
+    console.error('[Admin] Manual refresh failed:', e.message);
+  }
+
+  if (btn) setTimeout(() => btn.classList.remove('spinning'), 400);
+}
+
+function updateIncidentBadge() {
+  const open = _incidents.filter(i => i.status !== 'resolved').length;
+  const badge = document.getElementById('incBadge');
+  if (badge) badge.textContent = open > 0 ? open : '';
+}
+
+
+function updateIncidentBadge() {
+  const open = _incidents.filter(i => i.status !== 'resolved').length;
+  const badge = document.getElementById('incBadge');
+  if (badge) badge.textContent = open > 0 ? open : '';
+}
+
+// ---- OVERVIEW ----
+function renderOverview() {
+  const incidents = _incidents;
+  const jsas      = _jsas;
+  const open      = incidents.filter(i => i.status !== 'resolved').length;
+  const critical  = incidents.filter(i => i.severity === 'critical' || i.severity === 'high').length;
+  const resolved  = incidents.filter(i => i.status === 'resolved').length;
+  const workers   = [...new Set(incidents.map(i => i.name).concat(jsas.map(j => j.worker)).filter(Boolean))].length;
+
+  document.getElementById('stat-incidents').textContent  = incidents.length;
+  document.getElementById('stat-critical').textContent   = critical;
+  document.getElementById('stat-jsas').textContent       = jsas.length;
+  document.getElementById('stat-resolved').textContent   = resolved;
+  document.getElementById('stat-workers').textContent    = workers;
+  document.getElementById('stat-open-count').textContent = open > 0 ? `🔴 ${open} still open` : '✅ All resolved';
+
+  const ri = document.getElementById('recentIncidentsList');
+  ri.innerHTML = incidents.slice(0, 5).length ? incidents.slice(0, 5).map(i => `
+    <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <span class="sev-tag ${i.severity || 'low'}">${(i.severity||'low').toUpperCase()}</span>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;">${typeLabel(i.type)}</div>
+        <div style="font-size:11px;color:var(--text2);">👷 ${i.name} · 📍 ${i.location}</div>
+      </div>
+    </div>
+  `).join('') : '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No incidents yet</div></div>';
+
+  const rj = document.getElementById('recentJSAsList');
+  rj.innerHTML = jsas.slice(0, 5).length ? jsas.slice(0, 5).map(j => `
+    <div style="padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="font-size:13px;font-weight:600;">${j.task}</div>
+      <div style="font-size:11px;color:var(--text2);">👷 ${j.worker} · 📍 ${j.location} · 📅 ${j.date}</div>
+    </div>
+  `).join('') : '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No JSAs yet</div></div>';
+
+  renderTypeChart();
+}
+
+function renderTypeChart() {
+  const incidents = _incidents;
+  const types  = { near_miss:0, hazard:0, injury:0, property:0, environmental:0, fire:0, security:0 };
+  incidents.forEach(i => { if (i.type && types[i.type] !== undefined) types[i.type]++; });
+  const max    = Math.max(...Object.values(types), 1);
+  const colors = { near_miss:'#f5c518', hazard:'#ff8c00', injury:'#e63946', property:'#4361ee', environmental:'#2ec4b6', fire:'#ff4500', security:'#7b2d8b' };
+  document.getElementById('typeChartRows').innerHTML = Object.entries(types).map(([k, v]) => `
+    <div class="chart-item">
+      <div class="chart-label">${typeLabel(k)}</div>
+      <div class="chart-bar-bg">
+        <div class="chart-bar" style="width:${v?(v/max*100):0}%;background:${colors[k]};">
+          ${v > 0 ? `<span>${v}</span>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ---- INCIDENTS ----
+function renderAllIncidents(filter) {
+  currentFilter = filter;
+  let incidents = [..._incidents];
+  if (filter === 'open')     incidents = incidents.filter(i => i.status !== 'resolved');
+  else if (filter === 'resolved') incidents = incidents.filter(i => i.status === 'resolved');
+  else if (filter === 'critical') incidents = incidents.filter(i => i.severity === 'critical' || i.severity === 'high');
+  else if (filter !== 'all') incidents = incidents.filter(i => i.type === filter);
+
+  const container = document.getElementById('allIncidentsList');
+  if (!incidents.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No incidents found</div></div>`;
+    return;
+  }
+  container.innerHTML = incidents.map(inc => `
+    <div class="incident-card">
+      <div class="inc-card-top">
+        <div class="inc-card-left">
+          <div class="inc-card-type">${typeLabel(inc.type)}</div>
+          <div class="inc-card-meta">
+            <span>👷 ${inc.name || 'Unknown'}</span>
+            <span>🪪 ${inc.badge || '-'}</span>
+            <span>📍 ${inc.location || '-'}</span>
+            <span>🕒 ${inc.datetime ? new Date(inc.datetime).toLocaleString() : inc.savedAt}</span>
+          </div>
+        </div>
+        <span class="sev-tag ${inc.severity || 'low'}">${(inc.severity||'LOW').toUpperCase()}</span>
+      </div>
+      <div class="inc-desc">${inc.description || 'No description provided.'}</div>
+      ${inc.action ? `<div style="margin-top:8px;font-size:12px;color:var(--green);">✅ Action taken: ${inc.action}</div>` : ''}
+      ${inc.photos && inc.photos.length && inc.photos[0] !== '[photo-on-device]'
+        ? `<div class="inc-photos">${inc.photos.map(p => `<img class="inc-thumb" src="${p}" onclick="openPhotoModal('${p}')" />`).join('')}</div>`
+        : inc.photos && inc.photos.length
+          ? `<div style="margin-top:8px;font-size:12px;color:var(--text2);">📷 ${inc.photos.length} photo(s) — view on submitting device</div>`
+          : ''}
+      ${inc.witnesses ? `<div style="margin-top:8px;font-size:12px;color:var(--text2);">👥 Witnesses: ${inc.witnesses}</div>` : ''}
+      <div class="inc-status-row">
+        <div class="status-dot ${inc.status || 'open'}"></div>
+        <div class="status-text">${statusLabel(inc.status)}</div>
+        ${inc.status !== 'resolved'
+          ? `<button class="resolve-btn" onclick="resolveIncident('${inc._id || inc.savedAt}')">✅ Mark Resolved</button>`
+          : ''}
+      </div>
+    </div>`).join('');
+}
+
+function filterIncidents(filter, btn) {
+  document.querySelectorAll('.filter-row-dash .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAllIncidents(filter);
+}
+
+async function resolveIncident(docId) {
+  // Optimistic UI update
+  const inc = _incidents.find(i => i._id === docId || i.savedAt === docId);
+  if (inc) {
+    inc.status = 'resolved';
+    inc.resolvedAt = new Date().toLocaleString();
+  }
+  renderAllIncidents(currentFilter);
+  renderOverview();
+  updateIncidentBadge();
+  // Persist to Firestore + localStorage
+  await updateIncidentStatus(docId, 'resolved');
+}
+
+// ---- JSAs ----
+function renderAllJSAs() {
+  const jsas = _jsas;
+  const container = document.getElementById('allJSAsList');
+  if (!jsas.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No JSAs submitted yet</div></div>`;
+    return;
+  }
+  container.innerHTML = jsas.map(j => `
+    <div class="jsa-card">
+      <div class="jsa-card-top">
+        <div>
+          <div class="jsa-card-task">${j.task}</div>
+          <div class="jsa-card-meta">👷 ${j.worker} · 🪪 ${j.dept || '-'} · 📍 ${j.location} · 📅 ${j.date}</div>
+          ${j.supervisor ? `<div class="jsa-card-meta" style="margin-top:3px;">🧑‍💼 Supervisor: ${j.supervisor}</div>` : ''}
+        </div>
+        <span class="jsa-hazard-count">⚠️ ${j.hazards ? j.hazards.length : 0} hazard(s)</span>
+      </div>
+      ${j.hazards && j.hazards.length ? `
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px;">
+          ${j.hazards.map((h, hi) => `
+            <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:4px;">
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px;">
+                  <span style="color:var(--text3);font-size:11px;margin-right:6px;">#${hi+1}</span>${h.hazard || '—'}
+                </div>
+                ${h.control ? `<div style="font-size:11px;color:var(--green);">🛡 Control: ${h.control}</div>` : `<div style="font-size:11px;color:var(--text3);">🛡 No control measure recorded</div>`}
+              </div>
+              ${h.risk ? `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;height:fit-content;align-self:start;
+                background:${h.risk==='critical'?'rgba(230,57,70,0.2)':h.risk==='high'?'rgba(230,57,70,0.15)':h.risk==='medium'?'rgba(255,140,0,0.15)':'rgba(46,196,182,0.15)'};
+                color:${h.risk==='critical'||h.risk==='high'?'var(--red)':h.risk==='medium'?'var(--orange)':'var(--green)'};">
+                ${h.risk.toUpperCase()}
+              </span>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      ${j.ppeSelected && j.ppeSelected.length ? `<div style="font-size:12px;color:var(--text2);margin-top:10px;">🦺 PPE: ${j.ppeSelected.join(', ')}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+// ---- ANALYTICS ----
+function renderAnalytics() {
+  const incidents = _incidents;
+
+  const sevs = { critical:0, high:0, medium:0, low:0 };
+  incidents.forEach(i => { if (sevs[i.severity] !== undefined) sevs[i.severity]++; });
+  const maxS = Math.max(...Object.values(sevs), 1);
+  const sevColors = { critical:'#ff4444', high:'#e63946', medium:'#ff8c00', low:'#2ec4b6' };
+  document.getElementById('sevChartRows').innerHTML = Object.entries(sevs).map(([k, v]) => `
+    <div class="chart-item">
+      <div class="chart-label" style="text-transform:capitalize;">${k}</div>
+      <div class="chart-bar-bg"><div class="chart-bar" style="width:${v?(v/maxS*100):0}%;background:${sevColors[k]};">${v>0?`<span>${v}</span>`:''}</div></div>
+    </div>`).join('');
+
+  const locs = {};
+  incidents.forEach(i => { if (i.location) locs[i.location] = (locs[i.location]||0) + 1; });
+  const locEntries = Object.entries(locs).sort((a,b) => b[1]-a[1]).slice(0,6);
+  const maxL = Math.max(...locEntries.map(e => e[1]), 1);
+  document.getElementById('locChartRows').innerHTML = locEntries.length
+    ? locEntries.map(([loc, count]) => `
+      <div class="chart-item">
+        <div class="chart-label">${loc.substring(0,14)}</div>
+        <div class="chart-bar-bg"><div class="chart-bar" style="width:${(count/maxL*100)}%;background:#4361ee;"><span>${count}</span></div></div>
+      </div>`).join('')
+    : '<div style="color:var(--text3);font-size:13px;">No location data yet</div>';
+
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const dayCounts = [0,0,0,0,0,0,0];
+  incidents.forEach(i => {
+    const d = i.datetime ? new Date(i.datetime).getDay() : new Date(i.savedAt).getDay();
+    if (!isNaN(d)) dayCounts[d]++;
+  });
+  const maxD = Math.max(...dayCounts, 1);
+  document.getElementById('timeChartRows').innerHTML = days.map((d, i) => `
+    <div class="chart-item">
+      <div class="chart-label">${d}</div>
+      <div class="chart-bar-bg"><div class="chart-bar" style="width:${(dayCounts[i]/maxD*100)}%;background:#7b2d8b;">${dayCounts[i]>0?`<span>${dayCounts[i]}</span>`:''}</div></div>
+    </div>`).join('');
+
+  const reporterMap = {};
+  incidents.forEach(i => {
+    if (!i.name) return;
+    if (!reporterMap[i.name]) reporterMap[i.name] = { name:i.name, badge:i.badge||'-', dept:i.dept||'-', incidents:0, jsas:0, last:'' };
+    reporterMap[i.name].incidents++;
+    reporterMap[i.name].last = i.savedAt;
+  });
+  _jsas.forEach(j => {
+    if (!j.worker) return;
+    if (!reporterMap[j.worker]) reporterMap[j.worker] = { name:j.worker, badge:'-', dept:'-', incidents:0, jsas:0, last:'' };
+    reporterMap[j.worker].jsas++;
+    if (!reporterMap[j.worker].last) reporterMap[j.worker].last = j.savedAt;
+  });
+  const reporters = Object.values(reporterMap).sort((a,b) => (b.incidents+b.jsas)-(a.incidents+a.jsas));
+  document.getElementById('topReportersTable').innerHTML = reporters.length
+    ? reporters.map((r,i) => `<tr><td>${i+1}</td><td>${r.name}</td><td>${r.incidents}</td><td>${r.jsas}</td><td style="color:var(--text2);font-size:11px;">${r.last||'-'}</td></tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;color:var(--text3);">No data yet</td></tr>';
+}
+
+// ---- WORKERS ----
+function renderWorkers() {
+  const workerMap = {};
+  _incidents.forEach(i => {
+    if (!i.name) return;
+    if (!workerMap[i.name]) workerMap[i.name] = { name:i.name, badge:i.badge||'-', dept:i.dept||'-', incidents:0, jsas:0, last:'' };
+    workerMap[i.name].incidents++;
+    workerMap[i.name].last = i.savedAt;
+  });
+  _jsas.forEach(j => {
+    if (!j.worker) return;
+    if (!workerMap[j.worker]) workerMap[j.worker] = { name:j.worker, badge:'-', dept:'-', incidents:0, jsas:0, last:'' };
+    workerMap[j.worker].jsas++;
+    if (!workerMap[j.worker].last) workerMap[j.worker].last = j.savedAt;
+  });
+  const workers = Object.values(workerMap);
+  document.getElementById('workersTable').innerHTML = workers.length
+    ? workers.map(w => `<tr>
+        <td style="font-weight:600;">${w.name}</td>
+        <td style="color:var(--text2);">${w.badge}</td>
+        <td style="color:var(--text2);">${w.dept}</td>
+        <td><span style="color:var(--red);font-weight:700;">${w.incidents}</span></td>
+        <td><span style="color:var(--yellow);font-weight:700;">${w.jsas}</span></td>
+        <td style="font-size:11px;color:var(--text2);">${w.last||'-'}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:40px;">No worker data yet</td></tr>';
+}
+
+// ---- SETTINGS ----
+function loadSettings() {
+  document.getElementById('set-company').value = localStorage.getItem('mg_company') || 'ArcelorMittal Liberia';
+  document.getElementById('set-site').value    = localStorage.getItem('mg_site')    || 'Nimba Mine';
+  document.getElementById('set-manager').value = localStorage.getItem('mg_manager') || '';
+  document.getElementById('set-user').value    = localStorage.getItem('mg_admin_user') || DEFAULT_USER;
+}
+function saveSettings() {
+  localStorage.setItem('mg_company',     document.getElementById('set-company').value);
+  localStorage.setItem('mg_site',        document.getElementById('set-site').value);
+  localStorage.setItem('mg_manager',     document.getElementById('set-manager').value);
+  const u = document.getElementById('set-user').value.trim();
+  const p = document.getElementById('set-pass').value.trim();
+  if (u) localStorage.setItem('mg_admin_user', u);
+  if (p) localStorage.setItem('mg_admin_pass', p);
+  const saved = document.getElementById('settingsSaved');
+  saved.style.display = 'block';
+  setTimeout(() => saved.style.display = 'none', 2500);
+}
+async function clearAllData(type) {
+  if (!confirm(`Are you sure? This will permanently delete all ${type === 'incidents' ? 'incident reports' : 'JSAs'} from ALL devices.`)) return;
+  if (type === 'incidents') {
+    _incidents = [];
+    await clearAllIncidents();
+  }
+  if (type === 'jsas') {
+    _jsas = [];
+    await clearAllJSAs();
+  }
+  alert('Data cleared from all devices.');
+  renderOverview();
+  updateIncidentBadge();
+}
+
+// ---- EXPORT ----
+function exportIncidents() {
+  const incidents = _incidents;
+  if (!incidents.length) { alert('No incidents to export.'); return; }
+  const headers = ['Date','Name','Badge','Dept','Type','Severity','Location','Description','Action Taken','Witnesses','Status'];
+  const rows = incidents.map(i => [
+    i.datetime || i.savedAt, i.name, i.badge, i.dept,
+    typeLabel(i.type), i.severity, i.location,
+    `"${(i.description||'').replace(/"/g,'')}"`,
+    `"${(i.action||'').replace(/"/g,'')}"`,
+    i.witnesses, i.status || 'open'
+  ]);
+  downloadCSV([headers, ...rows], 'mineguard_incidents.csv');
+}
+function exportJSAs() {
+  const jsas = _jsas;
+  if (!jsas.length) { alert('No JSAs to export.'); return; }
+  const headers = ['Date','Worker','Task','Location','Supervisor','Hazard #','Hazard','Risk Level','Control Measure','PPE Selected'];
+  const rows = [];
+  jsas.forEach(j => {
+    if (j.hazards && j.hazards.length) {
+      j.hazards.forEach((h, i) => {
+        rows.push([
+          j.date, j.worker, `"${(j.task||'').replace(/"/g,'')}"`, j.location, j.supervisor || '',
+          i + 1,
+          `"${(h.hazard||'').replace(/"/g,'')}"`,
+          h.risk || '',
+          `"${(h.control||'').replace(/"/g,'')}"`,
+          i === 0 ? `"${(j.ppeSelected||[]).join('; ')}"` : ''
+        ]);
+      });
+    } else {
+      rows.push([
+        j.date, j.worker, `"${(j.task||'').replace(/"/g,'')}"`, j.location, j.supervisor || '',
+        0, '', '', '',
+        `"${(j.ppeSelected||[]).join('; ')}"`
+      ]);
+    }
+  });
+  downloadCSV([headers, ...rows], 'mineguard_jsas.csv');
+}
+function downloadCSV(rows, filename) {
+  const csv  = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+}
+
+// ---- PHOTO MODAL ----
+function openPhotoModal(src) {
+  document.getElementById('photoModalImg').src = src;
+  document.getElementById('photoModal').classList.add('open');
+}
+function closePhotoModal() {
+  document.getElementById('photoModal').classList.remove('open');
+}
+
+// ---- HELPERS ----
+function typeLabel(type) {
+  const map = { near_miss:'⚠️ Near Miss', hazard:'🔶 Hazard Observation', injury:'🩺 Injury/Illness', property:'🔧 Property Damage', environmental:'🌿 Environmental', fire:'🔥 Fire/Explosion', security:'🔒 Security' };
+  return map[type] || type || '❓ Unknown';
+}
+function statusLabel(status) {
+  if (status === 'resolved') return '✅ Resolved';
+  if (status === 'reviewing') return '🔵 Under Review';
+  return '🔴 Open';
+}
+</script>
+</body>
+</html>
